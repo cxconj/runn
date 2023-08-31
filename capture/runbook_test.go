@@ -93,6 +93,9 @@ func TestRunnable(t *testing.T) {
 			}
 
 			{
+				hs := testutil.HTTPServer(t)
+				gs := testutil.GRPCServer(t, false, false)
+				db, _ := testutil.SQLite(t)
 				opts := []runn.Option{
 					runn.Book(filepath.Join(dir, capturedFilename(tt.book))),
 					runn.HTTPRunner("req", hs.URL, hs.Client(), runn.MultipartBoundary(testutil.MultipartBoundary)),
