@@ -107,6 +107,9 @@ func (o *operator) Close() {
 	for _, r := range o.sshRunners {
 		_ = r.Close()
 	}
+	for _, r := range o.dbRunners {
+		_ = r.Close()
+	}
 }
 
 func (o *operator) runStep(ctx context.Context, i int, s *step) error {
@@ -1328,7 +1331,7 @@ func (ops *operators) runN(ctx context.Context) (*runNResult, error) {
 		ops.sw.Disable()
 	}
 	defer ops.sw.Start().Stop()
-	defer ops.Close()
+	// defer ops.Close()
 	cg, cctx := concgroup.WithContext(ctx)
 	cg.SetLimit(ops.concmax)
 	selected, err := ops.SelectedOperators()
@@ -1339,6 +1342,7 @@ func (ops *operators) runN(ctx context.Context) (*runNResult, error) {
 	for _, o := range selected {
 		o := o
 		cg.Go(o.concurrency, func() error {
+			defer o.Close()
 			select {
 			case <-cctx.Done():
 				return errors.New("context canceled")

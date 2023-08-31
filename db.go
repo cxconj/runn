@@ -37,6 +37,7 @@ type dbRunner struct {
 	name     string
 	client   TxQuerier
 	operator *operator
+	// db       *sql.DB
 }
 
 type dbQuery struct {
@@ -69,6 +70,7 @@ func newDBRunner(name, dsn string) (*dbRunner, error) {
 	return &dbRunner{
 		name:   name,
 		client: nx,
+		// db:     db,
 	}, nil
 }
 
@@ -216,6 +218,18 @@ func (rnr *dbRunner) Run(ctx context.Context, q *dbQuery) error {
 		return err
 	}
 	rnr.operator.record(out)
+	return nil
+}
+
+func (rnr *dbRunner) Close() error {
+	if rnr.client == nil {
+		return nil
+	}
+	if ndb, ok := rnr.client.(*nest.DB); ok {
+		if db := ndb.DB(); db != nil {
+			return db.Close()
+		}
+	}
 	return nil
 }
 
